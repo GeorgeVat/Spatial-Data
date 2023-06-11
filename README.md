@@ -1,15 +1,15 @@
 # Spatial-Data
 
-Spatial data is any type of data that directly or indirectly references a specific geographical area or location. Sometimes called geospatial data or geographic information, spatial data can also numerically represent a physical object in a geographic coordinate system. The aim of this work is to develop indexing techniques and queries for this kind of data. 
+Spatial data refers to any type of data that directly or indirectly references a specific geographical area or location. It can be referred to as geospatial data or geographic information. Spatial data can also represent a physical object numerically using a geographic coordinate system. The objective of this project is to develop indexing techniques and queries specifically designed for spatial data.
 
-I wrote a program that implements the sort-tile-recursive (STR) technique to read the rectangles from a file and build an R-tree in memory for them. This technique first sorts all the rectangles based on their x-low value and then reads sections of the sorted list (or file) that correspond to the square root of the total number of leaves in the tree, sorts them based on the y-low value and makes the leaves gradually (like the rest of the tree). After building the R-tree, implemented range queries for it.
+In this project, the sort-tile-recursive (STR) technique is implemented to read rectangles from a file and construct an R-tree in memory for efficient spatial indexing. The technique involves sorting all the rectangles based on their x-low value and then reading sections of the sorted list or file that correspond to the square root of the total number of leaves in the tree. These sections are further sorted based on the y-low value, gradually creating the leaves of the R-tree. Once the R-tree is built, range queries are implemented to perform spatial operations.
 
-I  complete 3 types of questions:
-1) Range intersection query: a rectangle q is given in space and the goal is to find the rectangles that intersect (for example, have a common point with) q.
-2) Range inside query: a rectangle q is given in space and the goal is to find the rectangles contained in q.
-3) Containment query: a rectangle q is given in space and the goal is to find the rectangles that contain q
-For each of the above questions implemented a function that uses the R-tree to count the number of results and the number of R-node nodes accessed to evaluate the query. The rectangles (q) have been given by the query_rectangles.txt file, in the following format:
-query-id x-low x-high y-low y-high
+Three types of queries are addressed in this project:
+1) Range intersection query: Given a rectangle (q) in space, the goal is to find the rectangles that intersect or have a common point with q.
+2) Range inside query: Given a rectangle (q) in space, the goal is to find the rectangles contained entirely within q.
+3) Containment query: Given a rectangle (q) in space, the goal is to find the rectangles that completely contain q.
+
+For each of the above query types, a function is implemented that utilizes the R-tree to count the number of results and the number of R-node nodes accessed during the query evaluation. The query rectangles are provided in the query_rectangles.txt file, which includes the query ID, x-low, x-high, y-low, and y-high values for each rectangle.
 
 Background
 STR
