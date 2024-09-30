@@ -1,55 +1,99 @@
-# Spatial-Data
+# Spatial Data Indexing and Querying
 
-Spatial data refers to any type of data that directly or indirectly references a specific geographical area or location. It can be referred to as geospatial data or geographic information. Spatial data can also represent a physical object numerically using a geographic coordinate system. The objective of this project is to develop indexing techniques and queries specifically designed for spatial data.
+## Overview
 
-In this project, the sort-tile-recursive (STR) technique is implemented to read rectangles from a file and construct an R-tree in memory for efficient spatial indexing. The technique involves sorting all the rectangles based on their x-low value and then reading sections of the sorted list or file that correspond to the square root of the total number of leaves in the tree. These sections are further sorted based on the y-low value, gradually creating the leaves of the R-tree. Once the R-tree is built, range queries are implemented to perform spatial operations.
+Spatial data refers to data that directly or indirectly references a specific geographical location or area. It can also represent physical objects numerically using a geographic coordinate system. The goal of this project is to develop efficient **indexing techniques** and implement various **spatial queries** tailored for spatial data, using a specialized data structure called the **R-tree**.
 
-Three types of queries are addressed in this project:
-1) Range intersection query: Given a rectangle (q) in space, the goal is to find the rectangles that intersect or have a common point with q.
-2) Range inside query: Given a rectangle (q) in space, the goal is to find the rectangles contained entirely within q.
-3) Containment query: Given a rectangle (q) in space, the goal is to find the rectangles that completely contain q.
+In this project, the **Sort-Tile-Recursive (STR)** technique is used to build an R-tree in memory from a set of rectangles stored in a file. This tree structure is then used to efficiently answer spatial queries such as range intersections, range containment, and containment queries. 
 
-For each of the above query types, a function is implemented that utilizes the R-tree to count the number of results and the number of R-node nodes accessed during the query evaluation. The query rectangles are provided in the query_rectangles.txt file, which includes the query ID, x-low, x-high, y-low, and y-high values for each rectangle.
+## Methodology
 
-Background
-STR
-Consider a fc-dimensional data set of r hyper-rectangles. A hyper-rectangle is defined by k intervals of the form [A, B] and is the locus of points whose i-th coordinate falls inside the 2-th interval, for all 1 < i < k. 
-STR is best described recursively with k = 2 providing the base case. (The case k = 1 is already handled well by regular B-trees.) Accordingly, we first consider a set of rectangles in the plane. The basic idea is to "tile" the data space using (r/n) vertical slices so that each slice contains enough rectangles to pack roughly (r/n) nodes. Once again we assume coordinates are for the center points of the rectangles. Determine the number of leaf level pages P = r/n and let S = P. Sort the rectangles by x-coordinate and partition them into S vertical slices. A slice consists of a run of S *n consecutive rectangles from the sorted list. Note that 
-the last slice may contain fewer than S *n rectangles. Now sort the rectangles of each slice by y-coordinate and pack them into nodes by grouping them into runs of length n (the first n rectangles into the first node, the next n into the second node, and so on). 
-R-tree
-An R-tree is a hierarchical data structure derived from the B-tree and designed for efficient execution of intersection queries. R-trees store a collection of rectangles which can change over time through insertions and deletions. Arbitrary geometric objects are handled by representing each object by its minimum bounding rectangle, i.e., the smallest upright rectangle which encloses the object. R-trees generalize easily to dimensions higher than two, but for notational simplicity we review only the two dimensional case. 
-Each node of the R-tree stores a maximum of n entries. Each entry consists of a rectangle R and a pointer P. For nodes at the leaf level, R is the bounding box of an actual object pointed to by P. At internal nodes, R is the minimum bounding rectangle (MBR) of all rectangles stored in the subtree pointed to by P. Note that every path down through the tree corresponds to a sequence of nested rectangles, the last of which contains an actual data object. Note also that rectangles at any level may overlap and that an R-tree created from a particular set of objects is by no means unique. 
-To perform a query Q, all rectangles that intersect the query region must be retrieved and examined (regardless of whether they are stored in an internal node or a leaf node). This retrieval is accomplished by using a simple recursive procedure that starts at the root node and which may follow several paths down through the tree. A node is processed by first retrieving all rectangles stored at that node which intersect Q. If the node is an internal node, the subtrees corresponding to the retrieved rectangles are searched recursively. Otherwise, the node is a leaf node and the retrieved rectangles (or the data objects themselves) are simply reported. 
+### Sort-Tile-Recursive (STR) Technique
 
-For more about STR and R-Tree : Scott T. Leutenegger, J. M. Edgington, and Mario A. López. 1997. STR: A Simple and Efficient Algorithm for R-Tree Packing. In ICDE. 497–506. 
- https://apps.dtic.mil/sti/pdfs/ADA324493.pdf 
-Part 1 (R-tree construction)
+The **STR technique** is employed to efficiently build the R-tree by sorting and tiling rectangles based on their spatial properties:
+1. **Sorting by x-coordinate:** The rectangles are sorted by their `x-low` value.
+2. **Vertical Slices:** The sorted list is partitioned into vertical slices, each containing roughly the square root of the total number of leaves.
+3. **Sorting by y-coordinate:** Each slice is further sorted by its `y-low` value, allowing the creation of R-tree leaf nodes.
+4. **Node Creation:** The rectangles are grouped into nodes, forming the **leaf level** of the R-tree.
+5. **R-tree Construction:** The internal nodes are built recursively by combining the leaf nodes, using the minimum bounding rectangles (MBRs) of the child nodes.
 
-Assume that  each node has a capacity of 1024 bytes and that we use 4 bytes for each object-id or node-id and one double (8 bytes) for each coordinate. So each record needs 36 bytes to be saved.
-In my implementation i read the data from the file, sort it and build the tree in memory. I will use an array structure to store the nodes. As i create the tree, i will add the nodes to the array and the node-id of a node will be its location in the array. In this way i  simulate a sequence of blocks on the disk that store the tree.
-The program also, should print statistics for the tree: height (ie number of levels), number of nodes in each level, and average area of MBRs in each level.
-It should also write the tree representation in an rtree.txt output text file. The first line will have only the node-id of the tree root. The second row will have only the number of levels of the tree. Each of the following lines in the file will contain the data of a node in the following format:
+### R-tree
+
+An **R-tree** is a hierarchical data structure optimized for spatial indexing, designed to efficiently handle spatial queries such as intersections, containment, and range queries. The key concept is that the objects are represented by their **Minimum Bounding Rectangles (MBRs)**, which are stored in nodes at different levels of the tree.
+
+- **Leaf Nodes:** Store actual data objects and their MBRs.
+- **Internal Nodes:** Store MBRs that enclose child nodes.
+- **Root Node:** The root of the tree encloses all other nodes, and paths down the tree correspond to nested MBRs.
+
+### Queries Implemented
+
+This project implements three types of spatial queries using the R-tree:
+
+1. **Range Intersection Query:** Given a query rectangle `q`, this query identifies all rectangles that intersect or have a common point with `q`.
+2. **Range Containment Query:** Given a query rectangle `q`, this query identifies all rectangles that are entirely contained within `q`.
+3. **Containment Query:** Given a query rectangle `q`, this query finds all rectangles that completely enclose `q`.
+
+Each query type uses a recursive approach to traverse the R-tree, identifying relevant rectangles based on the MBRs stored in the nodes.
+
+## Implementation Details
+
+### Part 1: R-tree Construction
+
+The R-tree is constructed by reading the spatial data from a file, organizing it in memory, and recursively building the tree.
+
+#### Key Steps:
+- **Node Capacity:** Each node can hold 1024 bytes, with 36 bytes per object entry (including coordinates and IDs).
+- **Tree Representation:** Nodes are stored in an array-based structure where each node's ID is its index in the array. This simulates a sequence of blocks on disk, where the R-tree is stored.
+- **Output File:** The constructed R-tree is written to a file (`rtree.txt`). This file contains:
+  - **Node ID of the root.**
+  - **Number of levels** in the tree.
+  - **Nodes** represented by their IDs, the number of entries they contain, and the MBRs and pointers to either child nodes or objects.
+  
+#### Example Node Representation:
+```
 node-id, n, (ptr1, MBR1), (ptr2, MBR2), ..., (ptrn, MBRn)
-The node-id is the id of the node, n is the number of entries in the node, followed by n entries in the node. In each record, ptr is either a node-id (if the record points to an intermediate node) or an object-id if the record points to an object. The MBR is a sequence of 4 doubles <x-low> <x-high> <y-low> <y-high>.
-In a practical part, I have created the list of registries sorted by x low and then sliced it in S vertical slices, then I go to each slice and sort it by ylow. For each slice now, I pack the sorted registries per 28 packs. So I create the last level of the tree (ie the leaves), where it will have 4516 nodes (all nodes will have 28 entries except the last one). Also at this level I put another cell where it will have an ID to separate the nodes from the leaves (this will help me for part 2).
-For the other levels I follow a different approach as the MBRs of the current leaves that we will calculate will be different, because from each node we take the max and min values from y and x as the new coordinates. So I implement a function (nextLevel ())  which returns a list from the next level with its new entries each time. This way i create the array levels [] which will have the following format: 
-levels = [level0, level1, level2…], where levels[0] = [[node_id], [[ptr, MBR] * 28] * 4516], levels [1] = [[node_id], [ptr, MBR] * 28] * 162], level [2] = [[node_id], [ptr, MBR] * 28] * 6] etc .. 
-The yHigh, yLow, xHigh, xLow functions are also used in this function where they return the appropriate x, y each time. These functions also take as an argument the epipedo (which is an index that shows every time the level), because the first time they are called they will have to search within levels [0] for values. Then the level increases by 1 and they look to the next level.
-After the array levels [] is created then I bring it in the form of the tree. I create an array rTree [] where it will have the following format:
- rTree= [node_id=0,[ptr,[MBR]]*n], [node_id=1,[ptr,[MBR]]*n] …… [node_id=4684,[ptr,[MBR]]*n]
-After I have created my tree then I implement the first tasks of the first part, I calculate the area of each level and calculate the height of the tree.
+```
 
-Part 2 (Queries)
-Question 1 : Range intersection query: a rectangle q is given in space and the goal is to find the rectangles that intersect (for example, have a common point with) q.
+Where `ptr` is a node ID (for internal nodes) or an object ID (for leaf nodes), and `MBR` contains the coordinates of the rectangle.
 
-Functions: intersectedNodes, doOverlap 
-The first function starts with the node of the root and if it finds that one of its nodes overlaps (via the doOverlap function), then it returns a new value in the node_overlapping field (This value will essentially be the node of its children node that you check each time) and does the same thing until it reaches a leaf. When it reaches a leaf it appends its node_id and continues until the recursion ends. So in the end is returned an array where it contains the node_id of the leafs that intersect. The doOverlap function takes as an argument the index of the query rectangle and the values x, y min/max from each MBR that is checked each time. The logic is that it checks the cases that do not overlap and returns False if it enters these conditions, otherwise return True which means that it overlaps.
+### Part 2: Query Implementation
 
-Question 2 : Range inside query: a rectangle q is given in space and the goal is to find the rectangles contained in q.
-Functions: findLeafsFromNode, isInside,rectsInsideQuery
-This function checks recursively the node you give it each time if it is nested (ie contained inside the query rectangle) and if it is a leaf or a node. In case it is not nested and not a leaf then it calls itself again but with a different node, more specifically with its child node (ie it goes down level until it finds a node or a leaf that is inside the query). If it finds a node that is nested then it gives this node to the findLeafsFromNode function which finds all the entries contained in this node (i.e. if I give as an argument to this function my root, it returns the total entries of the tree i.e. 126437) . Then after returning these records I append them one by one to leafsInsideQ. LeafsInsideQ will eventually contain the total records contained within the query rectangle.
+1. **Range Intersection Query:**
+   - **Functions:** `intersectedNodes`, `doOverlap`
+   - **Process:** Starts at the root, recursively traversing nodes whose MBRs overlap with the query rectangle `q`. Once it reaches the leaf nodes, it reports the rectangles that intersect with `q`.
 
-Question 3 : Containment query: a rectangle q is given in space and the goal is to find the rectangles that contain q
-Functions: queryContainment
-For this question I create a function that starts from the leafs and checks linearly if they contain the query. When it finds a node that is not a leaf, it breaks.
+2. **Range Containment Query:**
+   - **Functions:** `findLeafsFromNode`, `isInside`, `rectsInsideQuery`
+   - **Process:** Recursively checks whether nodes and their MBRs are contained within the query rectangle `q`. If a node is fully contained, all its child rectangles are retrieved.
 
+3. **Containment Query:**
+   - **Functions:** `queryContainment`
+   - **Process:** Starts from the leaf nodes and checks whether any of the rectangles fully contain the query rectangle `q`. Stops when an internal node does not contain the query.
+
+### Tree Statistics
+
+The program computes and prints various statistics about the constructed R-tree, including:
+- **Tree Height:** The number of levels in the R-tree.
+- **Number of Nodes per Level:** The distribution of nodes across different levels.
+- **Average MBR Area:** The average area of MBRs at each level.
+
+### Example of Tree Building
+
+1. **Level Creation:**
+   - The lowest level (leaf nodes) contains **4516 nodes**, each holding up to 28 entries, except the last node.
+   - Internal nodes are created by recursively grouping the lower-level nodes based on their MBRs.
+
+2. **Array Representation:**
+   - The R-tree is represented as an array `rTree`, where each entry corresponds to a node and contains its ID, pointers, and MBRs.
+
+## Query Execution
+
+Each query is designed to minimize the number of nodes accessed and the number of rectangles processed. After constructing the R-tree, the queries can be efficiently evaluated using the MBR information stored in the internal nodes.
+
+## Conclusion
+
+This project demonstrates an efficient approach to spatial data indexing using R-trees, with a focus on range queries, containment, and intersection queries. The **Sort-Tile-Recursive (STR)** technique provides an efficient way to build the R-tree, and the hierarchical structure of the R-tree allows for rapid spatial query processing. This structure is particularly useful for large-scale spatial datasets where direct search methods would be too slow.
+
+For more details on STR and R-tree construction, see:  
+- Scott T. Leutenegger, J. M. Edgington, and Mario A. López. 1997. "STR: A Simple and Efficient Algorithm for R-Tree Packing." In ICDE. 497–506.  
+  [Link to paper](https://apps.dtic.mil/sti/pdfs/ADA324493.pdf).
